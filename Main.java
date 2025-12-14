@@ -2,47 +2,81 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        // Inicializa o banco de dados
+        GerenciadorBanco.inicializarBanco();
+        
         Scanner leitor = new Scanner(System.in);
 
-        System.out.println("=== SISTEMA DE ORÇAMENTO 3D ===");
-        
-        // 1. Coleta de dados base (Configuração)
-        System.out.print("Digite o valor do rolo de Filamento (1kg) em R$: ");
-        double valorRolo = leitor.nextDouble();
+        int opcao = 0;
 
-        System.out.print("Digite o valor do kWh de energia (ex: 0.90): ");
-        double valorEnergia = leitor.nextDouble();
+        while (opcao != 3) {
+            System.out.println("\n=== MENU PRINCIPAL ===");
+            System.out.println("1. Novo Orçamento");
+            System.out.println("2. Ver Histórico");
+            System.out.println("3. Sair");
+            System.out.print("Escolha uma opção: ");
+            
+            // Tratamento para opção do menu
+            try {
+                String opcaoTexto = leitor.next();
+                opcao = Integer.parseInt(opcaoTexto);
+            } catch (NumberFormatException e) {
+                opcao = 0;
+            }
+            
+            leitor.nextLine(); // Limpa buffer
 
-        System.out.print("Digite a potência da impressora em Watts (ex: 300): ");
-        int potencia = leitor.nextInt();
+            if (opcao == 1) {
+                System.out.println("\n--- NOVO CÁLCULO ---");
+                System.out.print("Nome da Peça: ");
+                String nomePeca = leitor.nextLine();
 
-        // Instanciando o objeto da nossa calculadora
-        Calculadora3D calc = new Calculadora3D(valorRolo, valorEnergia, potencia);
+                // OBSERVE: Usamos lerNumero, NÃO nextDouble
+                System.out.print("Peso (g): ");
+                double pesoPeca = lerNumero(leitor);
 
-        System.out.println("\n--- DADOS DA PEÇA ---");
-        
-        // 2. Coleta de dados da peça específica
-        System.out.print("Peso estimado da peça (gramas): ");
-        double pesoPeca = leitor.nextDouble();
+                System.out.print("Tempo (h): ");
+                double tempoPeca = lerNumero(leitor);
 
-        System.out.print("Tempo estimado de impressão (horas): ");
-        double tempoPeca = leitor.nextDouble();
+                System.out.print("Preço Filamento (kg): ");
+                double valorRolo = lerNumero(leitor);
+                
+                System.out.print("Preço Energia (kWh): ");
+                double valorEnergia = lerNumero(leitor);
 
-        // 3. Processamento e Saída
-        double custoMaterial = calc.calcularCustoMaterial(pesoPeca);
-        double custoEnergia = calc.calcularCustoEnergia(tempoPeca);
-        double custoTotal = calc.calcularTotal(pesoPeca, tempoPeca);
+                System.out.print("Potência (Watts): ");
+                int potencia = (int) lerNumero(leitor);
 
-        System.out.println("\n=== RESULTADO FINAL ===");
-        // O %.2f serve para formatar com 2 casas decimais
-        System.out.printf("Custo de Material: R$ %.2f%n", custoMaterial);
-        System.out.printf("Custo de Energia:  R$ %.2f%n", custoEnergia);
-        System.out.println("---------------------------");
-        System.out.printf("CUSTO TOTAL DE PRODUÇÃO: R$ %.2f%n", custoTotal);
-        
-        // Dica de venda: Margem de lucro sugerida (3x o custo)
-        System.out.printf("Preço de Venda Sugerido (3x): R$ %.2f%n", custoTotal * 3);
+                Calculadora3D calc = new Calculadora3D(valorRolo, valorEnergia, potencia);
+                double custoTotal = calc.calcularTotal(pesoPeca, tempoPeca);
 
+                System.out.printf(">>> CUSTO FINAL: R$ %.2f%n", custoTotal);
+                
+                GerenciadorBanco.salvarImpressao(nomePeca, pesoPeca, custoTotal);
+            
+            } else if (opcao == 2) {
+                GerenciadorBanco.consultarHistorico();
+            
+            } else if (opcao == 3) {
+                System.out.println("Saindo... Até logo!");
+            } else {
+                System.out.println("Opção inválida!");
+            }
+        }
         leitor.close();
+    }
+
+    // --- FUNÇÃO QUE CORRIGE A VÍRGULA AUTOMATICAMENTE ---
+    public static double lerNumero(Scanner scanner) {
+        // Lê como texto
+        String texto = scanner.next();
+        // Troca vírgula por ponto
+        texto = texto.replace(",", ".");
+        try {
+            return Double.parseDouble(texto);
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Valor inválido digitado. Considerando 0.");
+            return 0.0;
+        }
     }
 }

@@ -1,0 +1,9 @@
+# Ignorar arquivos compilados
+*.class
+
+# Ignorar banco de dados local (o código cria um novo)
+*.db
+*.log
+
+# Ignorar pastas de configuração do VS Code (opcional)
+.vscode/
